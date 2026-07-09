@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hyperion Account Manager</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ───────────────────────── Top bar ───────────────────────── -->
+  <header class="topbar" id="topbar" hidden>
+    <div class="brand">
+      <img class="brand-mark" src="favicon.png" alt="H" />
+      <div class="brand-text"><strong class="brand-name">HYPERION</strong><small>Account Manager</small></div>
+    </div>
+    <div class="topbar-right">
+      <span class="running-pill" id="running-count" title="Roblox clients running">0 running</span>
+      <div class="conn" id="conn" title="Live connection"><span class="dot"></span><span class="conn-label">connecting…</span></div>
+      <button class="btn kill" id="kill-roblox-btn" title="End all Roblox processes on this PC">⛔ Kill Roblox</button>
+      <button class="icon-btn" id="settings-btn" title="Settings">⚙</button>
+      <button class="btn ghost" id="lock-btn" title="Lock the vault">🔒 Lock</button>
+    </div>
+  </header>
+
+  <!-- ───────────────────── Lock / Create view ───────────────────── -->
+  <main class="lockwrap" id="lock-view">
+    <div class="lockcard">
+      <img class="lock-logo" src="favicon.png" alt="Hyperion" />
+      <h1 id="lock-title">Hyperion Account Manager</h1>
+      <p class="muted" id="lock-sub">Loading…</p>
+      <form id="lock-form" autocomplete="off" hidden>
+        <label class="field"><span id="pw-label">Master password</span>
+          <input type="password" id="pw" placeholder="••••••••••" autocomplete="off" /></label>
+        <label class="field" id="pw2-field" hidden><span>Confirm password</span>
+          <input type="password" id="pw2" placeholder="••••••••••" autocomplete="off" /></label>
+        <p class="form-error" id="lock-error" hidden></p>
+        <button type="submit" class="btn primary block" id="lock-submit">Unlock</button>
+      </form>
+    </div>
+    <p class="footnote">Your accounts are encrypted locally with AES-256-GCM. The master password never leaves this PC.</p>
+  </main>
+
+  <!-- ───────────────────────── Dashboard ───────────────────────── -->
+  <main class="dash" id="app-view" hidden>
+
+    <!-- HERO: Join by Username (primary, always visible) -->
+    <section class="hero">
+      <div class="hero-head">
+        <div class="hero-title">
+          <span class="hero-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><line x1="12" y1="1.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22.5" y2="12"/></svg></span>
+          <div><h2>Join by Username</h2><p class="muted">Type a username, Auto-Detect their server, then launch your bots in.</p></div>
+        </div>
+        <button class="btn primary xl" id="launch-selected">▶ Launch selected</button>
+      </div>
+
+      <div class="hero-row">
+        <label class="hf grow"><span>Username</span>
+          <input type="text" id="follow-user" placeholder="e.g. builderman" autocomplete="off" /></label>
+        <button class="btn accent" id="autodetect-btn" title="Find the game & server this user is in right now">🔍 Auto-Detect</button>
+      </div>
+
+      <p class="detect-status" id="detect-status" hidden></p>
+
+      <div class="hero-row">
+        <label class="hf grow"><span>Place ID</span>
+          <input type="text" id="place-id" placeholder="auto-filled by Detect, or type one" inputmode="numeric" /></label>
+        <label class="hf grow"><span>Job ID <small>(exact server — blank = any)</small></span>
+          <input type="text" id="job-id" placeholder="server GUID" /></label>
+      </div>
+
+      <div class="hero-foot">
+        <div class="presets">
+          <select id="preset-select" title="Load a saved place"><option value="">Saved places…</option></select>
+          <button class="btn ghost sm" id="save-preset">＋ Save current</button>
+          <button class="btn ghost sm" id="del-preset" hidden>🗑</button>
+        </div>
+        <div class="more-wrap">
+          <button class="link-toggle" id="adv-toggle">VIP / private link ▾</button>
+          <input type="text" id="vip-link" class="vip-input" placeholder="https://www.roblox.com/games/…?privateServerLinkCode=…" hidden />
+        </div>
+      </div>
+    </section>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search"><span class="search-icon">⌕</span>
+        <input type="text" id="search" placeholder="Search accounts…" /></div>
+      <div class="toolbar-actions">
+        <label class="selectall"><input type="checkbox" id="select-all" /> <span id="count-pill">0</span></label>
+        <button class="btn ghost" id="refresh-btn" title="Refresh presence & avatars">⟳ Refresh</button>
+        <button class="btn ghost" id="import-btn">⤓ Import</button>
+        <button class="btn primary" id="add-btn">＋ Add account</button>
+      </div>
+    </div>
+
+    <!-- Account list -->
+    <section id="account-list" class="account-grid"></section>
+
+    <div class="empty" id="empty-state">
+      <div class="empty-art">🛰️</div>
+      <h2>No accounts yet</h2>
+      <p class="muted">Add an account with a cookie or username + password, or import from Roblox Account Manager.</p>
+      <div class="empty-actions">
+        <button class="btn primary" id="empty-add-btn">＋ Add account</button>
+        <button class="btn" id="empty-import-btn">⤓ Import from RAM</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ───────────────────────── Add-account modal ───────────────────────── -->
+  <div class="modal-backdrop" id="add-modal" hidden>
+    <div class="modal">
+      <header class="modal-head"><h3>Add account</h3><button class="icon-btn" id="add-close">✕</button></header>
+      <div class="tabs">
+        <button class="tab active" data-tab="cookie">Cookie</button>
+        <button class="tab" data-tab="creds">Username + Password</button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-pane" id="pane-cookie">
+          <label class="field"><span>.ROBLOSECURITY cookie</span>
+            <textarea id="cookie-input" rows="4" placeholder="_|WARNING:-DO-NOT-SHARE-THIS.…"></textarea></label>
+          <label class="field"><span>Group <small>(optional)</small></span>
+            <input type="text" id="cookie-group" placeholder="Default" /></label>
+          <p class="form-error" id="cookie-error" hidden></p>
+        </div>
+        <div class="tab-pane" id="pane-creds" hidden>
+          <p class="hint">A real Roblox login window opens with your details pre-filled. Solve any captcha / 2FA there — Hyperion captures the session automatically.</p>
+          <label class="field"><span>Username</span>
+            <input type="text" id="cred-user" placeholder="roblox username" autocomplete="off" /></label>
+          <label class="field"><span>Password</span>
+            <input type="password" id="cred-pass" placeholder="password" autocomplete="off" /></label>
+          <label class="field"><span>Group <small>(optional)</small></span>
+            <input type="text" id="cred-group" placeholder="Default" /></label>
+          <p class="login-status" id="login-status" hidden></p>
+          <p class="form-error" id="creds-error" hidden></p>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button class="btn ghost" id="add-cancel">Cancel</button>
+        <button class="btn primary" id="add-run">Add</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── Import modal ───────────────────────── -->
+  <div class="modal-backdrop" id="import-modal" hidden>
+    <div class="modal">
+      <header class="modal-head"><h3>Import from Roblox Account Manager</h3><button class="icon-btn" id="import-close">✕</button></header>
+      <div class="modal-body">
+        <label class="field"><span>Path to <code>AccountData.json</code></span>
+          <input type="text" id="src-path" placeholder="C:\\…\\Roblox Account Manager\\AccountData.json" /></label>
+        <p class="hint" id="detect-hint"></p>
+        <label class="field" id="src-pw-field" hidden><span>RAM master password</span>
+          <input type="password" id="src-pw" placeholder="the password you set in RAM" autocomplete="off" /></label>
+        <p class="form-error" id="import-error" hidden></p>
+      </div>
+      <footer class="modal-foot">
+        <button class="btn ghost" id="import-cancel">Cancel</button>
+        <button class="btn primary" id="import-run">Import</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── Settings modal ───────────────────────── -->
+  <div class="modal-backdrop" id="settings-modal" hidden>
+    <div class="modal">
+      <header class="modal-head"><h3>Settings</h3><button class="icon-btn" id="settings-close">✕</button></header>
+      <div class="modal-body">
+        <label class="toggle danger"><input type="checkbox" id="cfg-multi" />
+          <span><strong>Multi-instance (multi-Roblox)</strong><small>Run several clients at once by holding Roblox's <code>ROBLOX_singletonEvent</code> + <code>ROBLOX_singletonMutex</code> locks. <b>Close all Roblox first</b>, enable this, then launch. Off by default — interacts with anti-cheat and may carry ban risk.</small></span></label>
+        <label class="toggle"><input type="checkbox" id="cfg-privacy" />
+          <span><strong>Privacy mode</strong><small>Clear RobloxCookies.dat before each launch to reduce account association.</small></span></label>
+        <label class="toggle"><input type="checkbox" id="cfg-close" />
+          <span><strong>Close previous instance on launch</strong><small>Avoids the "same account launched elsewhere" disconnect.</small></span></label>
+
+        <h4 class="settings-h">Launch queue</h4>
+        <label class="field inline"><span>Delay between bots (seconds)</span>
+          <input type="number" id="cfg-delay" min="0" max="60" /></label>
+        <label class="toggle"><input type="checkbox" id="cfg-retry" />
+          <span><strong>Retry the same server when full</strong><small>When a specific Job ID is set, keep retrying that exact server until a slot opens (never hops to a different one).</small></span></label>
+        <label class="field inline"><span>Retry interval (seconds)</span>
+          <input type="number" id="cfg-retry-interval" min="2" max="120" /></label>
+        <label class="field inline"><span>Max retries per bot</span>
+          <input type="number" id="cfg-max-retries" min="0" max="100" /></label>
+
+        <h4 class="settings-h">Watcher</h4>
+        <label class="toggle"><input type="checkbox" id="cfg-watcher" />
+          <span><strong>Auto-relaunch "keep online" accounts</strong><small>If a 📌 kept account is AFK-kicked or disconnects, relaunch it to its last place/server.</small></span></label>
+        <label class="field inline"><span>Check interval (seconds)</span>
+          <input type="number" id="cfg-interval" min="10" max="600" /></label>
+        <label class="field inline"><span>Relaunch after N missed checks</span>
+          <input type="number" id="cfg-grace" min="1" max="10" /></label>
+
+        <h4 class="settings-h">Performance</h4>
+        <label class="toggle"><input type="checkbox" id="cfg-fps" />
+          <span><strong>FPS unlocker</strong><small>Patch Roblox's ClientAppSettings.json before launch to raise the frame-rate cap.</small></span></label>
+        <label class="field inline"><span>FPS cap</span>
+          <input type="number" id="cfg-fpscap" min="30" max="999" /></label>
+
+        <h4 class="settings-h">Optimizer</h4>
+        <p class="hint">Minimize, CPU-pin, and RAM-trim your <b>ALT</b> clients while leaving your <b>MAIN</b> account at full power. Works on same-user Roblox processes without admin.</p>
+        <label class="toggle"><input type="checkbox" id="cfg-opt" />
+          <span><strong>Enable optimizer</strong><small>Runs continuously while the app is open. After a warm-up, alts get minimized, pinned to a few cores, and trimmed.</small></span></label>
+        <label class="field"><span>Main account <small>(never optimized)</small></span>
+          <select id="cfg-opt-main"><option value="">— none (first-opened is main) —</option></select></label>
+        <label class="toggle"><input type="checkbox" id="cfg-opt-min" />
+          <span><strong>Minimize ALT windows</strong><small>Minimized Roblox drops to ~1 FPS, so trimming is safe.</small></span></label>
+        <label class="field inline"><span>Trim ALT RAM above (MB)</span>
+          <input type="number" id="cfg-opt-ram" min="100" max="8000" /></label>
+        <label class="field inline"><span>Trim interval (seconds)</span>
+          <input type="number" id="cfg-opt-trim" min="5" max="600" /></label>
+        <label class="field inline"><span>Warm-up before throttling (minutes)</span>
+          <input type="number" id="cfg-opt-warmup" min="0" max="30" step="0.5" /></label>
+        <label class="field inline"><span>CPU cores per ALT</span>
+          <input type="number" id="cfg-opt-cores" min="1" max="64" /></label>
+
+        <h4 class="settings-h">Roblox version</h4>
+        <p class="hint">Blank = launch your installed Roblox normally. To run an older / archived build, set the folder that contains its <code>RobloxPlayerBeta.exe</code>.</p>
+        <label class="field"><span>Custom Roblox folder</span>
+          <input type="text" id="cfg-folder" placeholder="Folder containing an older RobloxPlayerBeta.exe (blank = default)" /></label>
+
+        <h4 class="settings-h">Backup</h4>
+        <p class="hint">Export an encrypted copy of all accounts you can restore on any PC with its password.</p>
+        <div class="settings-actions">
+          <button class="btn" id="backup-export-btn">⬆ Export backup</button>
+          <button class="btn" id="backup-import-btn">⬇ Import backup</button>
+        </div>
+
+        <h4 class="settings-h">Local control API <span class="tag-off" id="extapi-tag">off</span></h4>
+        <label class="toggle danger"><input type="checkbox" id="cfg-extapi" />
+          <span><strong>Enable local control API</strong><small>Lets local scripts drive Hyperion over <code>http://127.0.0.1:8777/external/…</code> with an API key. Off by default.</small></span></label>
+        <div id="extapi-detail" hidden>
+          <label class="field"><span>API key <small>(send as <code>X-API-Key</code> header)</small></span>
+            <input type="text" id="extapi-key" readonly /></label>
+          <label class="toggle"><input type="checkbox" id="cfg-ext-list" /><span><strong>Allow listing accounts</strong></span></label>
+          <label class="toggle"><input type="checkbox" id="cfg-ext-launch" /><span><strong>Allow launching accounts</strong></span></label>
+          <label class="toggle danger"><input type="checkbox" id="cfg-ext-cookie" /><span><strong>Allow reading cookies</strong><small>Dangerous — anything with the key could steal sessions. Keep off.</small></span></label>
+        </div>
+      </div>
+      <footer class="modal-foot"><button class="btn primary" id="settings-save">Done</button></footer>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── Backup modal ───────────────────────── -->
+  <div class="modal-backdrop" id="backup-modal" hidden>
+    <div class="modal">
+      <header class="modal-head"><h3 id="backup-title">Export backup</h3><button class="icon-btn" id="backup-close">✕</button></header>
+      <div class="modal-body">
+        <label class="field"><span>Backup file path</span>
+          <input type="text" id="backup-path" placeholder="C:\\Users\\you\\Desktop\\hyperion-accounts.hexp" /></label>
+        <label class="field"><span>Backup password</span>
+          <input type="password" id="backup-pass" autocomplete="off" placeholder="password to protect this file" /></label>
+        <p class="form-error" id="backup-error" hidden></p>
+      </div>
+      <footer class="modal-foot"><button class="btn ghost" id="backup-cancel">Cancel</button><button class="btn primary" id="backup-run">Export</button></footer>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toasts"></div>
+  <script src="app.js"></script>
+</body>
+</html>

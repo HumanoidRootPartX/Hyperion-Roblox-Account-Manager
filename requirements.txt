@@ -1,0 +1,24 @@
+# Hyperion Account Manager — runtime dependencies (all free / open-source)
+
+# --- Web server + desktop shell ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pywebview==5.3.2          # native desktop window wrapping the local web UI
+
+# --- HTTP client for the Roblox web API (Phase 2) ---
+httpx==0.28.1
+
+# --- Crypto: encrypted vault (AES-256-GCM + Argon2id KDF) ---
+cryptography==44.0.0
+argon2-cffi==23.1.0
+
+# --- Migration of the legacy Roblox Account Manager vault ---
+PyNaCl==1.5.0             # libsodium SecretBox + Argon2 (password-mode files)
+pywin32==308 ; sys_platform == "win32"   # DPAPI (CryptUnprotectData) for machine-bound files
+
+# --- Process / window management (Phase 3) ---
+psutil==6.1.1
+
+# --- Username/password login (drives a real browser to capture the cookie) ---
+# Needs a one-time `playwright install chromium` after pip install.
+playwright==1.49.1
