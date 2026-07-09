@@ -51,8 +51,8 @@
 > Requires **Windows** and **Python 3.12**.
 
 ```powershell
-git clone https://github.com/<your-username>/hyperion-account-manager.git
-cd hyperion-account-manager
+git clone https://github.com/HumanoidRootPartX/Hyperion-Roblox-Account-Manager.git
+cd Hyperion-Roblox-Account-Manager
 
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
