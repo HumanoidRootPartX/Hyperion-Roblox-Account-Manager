@@ -112,7 +112,7 @@ Each action (list / launch / read-cookie) has its own permission toggle; reading
 
 ## License
 
-[MIT](LICENSE) © XHyperionSL
+[MIT](LICENSE) © HumanoidRootPart
 
 ## Credits
 
